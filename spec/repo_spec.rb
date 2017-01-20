@@ -13,7 +13,6 @@ describe Materialize::Repo do
     expect(zombies.count).to eq(3)
   end
 
-
   it 'also handles the case where the argument is an array' do
     zombies = repo.find_two_zombies(DataSource::Zombie, args: [1,2])
     zombie  = zombies.last
@@ -27,6 +26,14 @@ describe Materialize::Repo do
     expect(zombie.class).to eq(Entities::Zombie)
     expect(zombie.name).to eq('Sarah the zombie')
     expect(zombie.id).to eq(2)
+  end
+
+  it 'handles the case where a token is needed' do
+    repo = Materialize::Repo.new('token-12345')
+    zombie = repo.find_one_zombie_with_token(DataSource::Zombie, args: 2)
+    expect(zombie.class).to eq(Entities::Zombie)
+    expect(zombie.name).to eq('Locked up zombie')
+    expect(zombie.id).to eq(4)
   end
 
 end
@@ -46,7 +53,25 @@ module DataSource
       def find_one_zombie(id)
         { id: 2, name: 'Sarah the zombie' }
       end
+
+      def find_one_zombie_with_token(token, id)
+        { id: 4, name: 'Locked up zombie' }
+      end
     end
+  end
+end
+
+class ZombieBuilder
+  class << self
+
+    def build(data)
+      Entities::Zombie.new(data)
+    end
+
+    def build_all(data)
+      Entities::Zombie.wrap(data)
+    end
+
   end
 end
 
