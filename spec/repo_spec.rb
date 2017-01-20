@@ -70,18 +70,6 @@ module DataSource
 end
 
 module Entities
-  class Zombie
-
-    def self.wrap(zombies_data)
-      zombies_data.map { |zombie_data| new(zombie_data)  }
-    end
-
-    attr_reader :id, :name
-
-    def initialize(attributes)
-      @id = attributes[:id]
-      @name = attributes[:name]
-    end
-
+  class Zombie < Materialize::Entity
   end
 end
