@@ -30,7 +30,11 @@ module Materialize
     end
 
     def builder_class_for(builder_class_name)
-      Module.const_get(builder_class_name)
+      if class_exists?(builder_class_name)
+        Module.const_get(builder_class_name)
+      else
+        Object.const_set(builder_class_name, Class.new(Materialize::BaseBuilder))
+      end
     end
 
     def builder_class_name_for(base_class_name)
@@ -63,6 +67,13 @@ module Materialize
         end
 
       end
+    end
+
+    def class_exists?(class_name)
+      klass = Module.const_get(class_name)
+      return klass.is_a?(Class)
+    rescue NameError
+      return false
     end
 
   end

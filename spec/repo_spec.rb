@@ -36,6 +36,14 @@ describe Materialize::Repo do
     expect(zombie.id).to eq(4)
   end
 
+  it 'creates the builder class on the fly if it does not exist' do
+    repo = Materialize::Repo.new('token-12345')
+    zombie = repo.find_one_zombie_with_token(DataSource::Zombie, args: 2)
+    expect(zombie.class).to eq(Entities::Zombie)
+    expect(zombie.name).to eq('Locked up zombie')
+    expect(zombie.id).to eq(4)
+  end
+
 end
 
 module DataSource
@@ -58,20 +66,6 @@ module DataSource
         { id: 4, name: 'Locked up zombie' }
       end
     end
-  end
-end
-
-class ZombieBuilder
-  class << self
-
-    def build(data)
-      Entities::Zombie.new(data)
-    end
-
-    def build_all(data)
-      Entities::Zombie.wrap(data)
-    end
-
   end
 end
 
