@@ -2,11 +2,11 @@ module Materialize
   class BaseBuilder
     class << self
 
-      def build(data, repo, options)
+      def build(data, options)
         entity_class.new(data)
       end
 
-      def build_all(data, repo, options)
+      def build_all(data, options)
         entity_class.wrap(data)
       end
 

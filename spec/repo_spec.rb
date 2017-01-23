@@ -28,6 +28,14 @@ describe Materialize::Repo do
     expect(zombie.id).to eq(2)
   end
 
+  it 'can handle arguments in concurrent mode' do
+    zombie = repo.find_one_zombie(DataSource::ConcurrentZombie, args: 2)
+    expect(zombie.class).to eq(Entities::ConcurrentZombie)
+    expect(zombie.name).to eq('Sarah the zombie')
+    expect(zombie.id).to eq(2)
+    expect(zombie.brains.count).to eq(3)
+  end
+
   it 'handles the case where a token is needed' do
     repo = Materialize::Repo.new('token-12345')
     zombie = repo.find_one_zombie_with_token(DataSource::Zombie, args: 2)
@@ -72,4 +80,50 @@ end
 module Entities
   class Zombie < Materialize::Entity
   end
+end
+
+# Testing concurrency
+
+module DataSource
+  class ConcurrentZombie
+    class << self
+
+      def find_one_zombie(id)
+        { id: 2, name: 'Sarah the zombie' }
+      end
+
+    end
+  end
+
+  class Brain
+    class << self
+
+      def find_brains_for(zombie)
+        [{id: 1}, {id: 2}, {id: 3}]
+      end
+
+    end
+  end
+end
+
+class ConcurrentZombieBuilder < Materialize::BaseBuilder
+  class << self
+
+    def build(data, options)
+      zombie = Entities::ConcurrentZombie.new(data)
+      concurrent -> do
+        zombie.brains = options[:repo].find_brains_for(DataSource::Brain, args: zombie)
+      end
+      zombie
+    end
+
+  end
+end
+
+module Entities
+  class ConcurrentZombie < Materialize::Entity
+    attr_accessor :brains
+  end
+
+  class Brain < Materialize::Entity; end
 end
