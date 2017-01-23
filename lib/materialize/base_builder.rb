@@ -1,5 +1,6 @@
 module Materialize
   class BaseBuilder
+    extend Concurrent
     class << self
 
       def build(data, repo, options)
@@ -8,16 +9,6 @@ module Materialize
 
       def build_all(data, repo, options)
         entity_class.wrap(data)
-      end
-
-      def concurrent(*lambdas)
-        threads = []
-        lambdas.each do |l|
-          threads << Thread.new do
-            l.()
-          end
-        end
-        threads.each(&:join)
       end
 
       def entity_class
