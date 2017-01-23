@@ -15,7 +15,9 @@ module Materialize
       data, builder_class = process(data_source_class, query, args_to_pass)
       options.delete(:args)
 
-      if data.is_a?(Array)
+      if data.is_a?(Hash) and !data['message'].nil?
+			  Response.new data
+      elsif data.is_a?(Array)
         builder_class.build_all(data, self, options)
       else
         builder_class.build(data, self, options)
