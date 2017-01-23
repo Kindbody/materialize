@@ -109,10 +109,10 @@ end
 class ConcurrentZombieBuilder < Materialize::BaseBuilder
   class << self
 
-    def build(data, options)
+    def build(data, repo, options)
       zombie = Entities::ConcurrentZombie.new(data)
       concurrent -> do
-        zombie.brains = options[:repo].find_brains_for(DataSource::Brain, args: zombie)
+        zombie.brains = repo.find_brains_for(DataSource::Brain, args: zombie)
       end
       zombie
     end

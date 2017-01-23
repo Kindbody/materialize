@@ -14,13 +14,11 @@ module Materialize
 
       data, builder_class = process(data_source_class, query, args_to_pass)
       options.delete(:args)
-      options[:repo] = self
-      options[:token] = token unless token.nil?
 
       if data.is_a?(Array)
-        builder_class.build_all(data, options)
+        builder_class.build_all(data, self, options)
       else
-        builder_class.build(data, options)
+        builder_class.build(data, self, options)
       end
     end
 
