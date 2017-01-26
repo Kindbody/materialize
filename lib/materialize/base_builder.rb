@@ -1,14 +1,19 @@
+require 'pry'
+
 module Materialize
   class BaseBuilder
     extend Concurrent
     class << self
 
+      # Need to attach builder info somehow before we call initialize!
       def build(data, repo, options)
-        attach_builder_info(entity_class.new(data), repo, options)
+        data = data.merge({ __repo__: repo, __options__: options })
+        entity_class.new(data)
       end
 
       def build_all(data, repo, options)
-        entity_class.wrap(data).map { |entity| attach_builder_info(entity, repo, options) }
+        datas = data.map { |d| d.merge({ __repo__: repo, __options__: options }) }
+        entity_class.wrap(datas)
       end
 
       def entity_class
@@ -16,11 +21,6 @@ module Materialize
       end
 
       private
-
-      def attach_builder_info(entity, repo, options)
-        entity.__builder_info__ = { repo: repo, options: options }
-        entity
-      end
 
       def entity_base_class_name
         "#{self.name[0..-8]}".split('::').last

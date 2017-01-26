@@ -18,6 +18,7 @@ describe Materialize::Entity do
     e = entity.new({ not_lawn_mowers: [{ id: 'briggs' }, { id: 'kubota' }] })
     expect(e.not_lawn_mowers.first).to be_a(Hash)
   end
+
 end
 
 module Entities

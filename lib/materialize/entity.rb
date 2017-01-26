@@ -11,6 +11,12 @@ module Materialize
     def initialize(attributes)
       raise "Attributes must be a hash" unless attributes.is_a?(Hash)
 
+      @__repo__    = attributes[:__repo__]
+      @__options__ = attributes[:__options__]
+
+      attributes.delete(:__repo__)
+      attributes.delete(:__options__)
+
       attributes.each_pair do |key, value|
         value = attempt_entity_conversion(key, value) if collection?(value)
         instance_variable_set("@#{key}", value)
@@ -24,7 +30,7 @@ module Materialize
 
     # START REMARKS ---->
 
-    # These are here to allow for nested data coming from a data source via a repo.
+    # __repo__ and __options__ are here to allow for nested data coming from a data source via a repo.
     # e.g.
     # blog_post = {
     #   id: 1,
@@ -37,17 +43,14 @@ module Materialize
     # WARNING:
     # This should be avoided for deeply nested data, especially when the leaves look up extra data!
 
+    attr_reader :__repo__, :__options__
 
-    def __builder_info__
-      @__builder_info__ ||= {}
-    end
-
-    def repo
-      __builder_info__[:repo]
-    end
-
-    def options
-      __builder_info__[:options]
+    def attempt_entity_conversion(key, value)
+      if class_exists?(covert_to_entity_class_name(key))
+        Module.const_get(builder_class_name_for(key)).build_all(value, __repo__, __options__)
+      else
+        value
+      end
     end
 
     # ----> END REMARKS
@@ -56,13 +59,6 @@ module Materialize
       value.is_a? Enumerable
     end
 
-    def attempt_entity_conversion(key, value)
-      if class_exists?(covert_to_entity_class_name(key))
-        Module.const_get(builder_class_name_for(key)).build_all(value, repo, options)
-      else
-        value
-      end
-    end
 
     def covert_to_entity_class_name(key)
       "Entities::#{base_name_for(key)}"
