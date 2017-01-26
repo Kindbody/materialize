@@ -5,7 +5,6 @@ module Materialize
     extend Concurrent
     class << self
 
-      # Need to attach builder info somehow before we call initialize!
       def build(data, repo, options)
         data = data.merge({ __repo__: repo, __options__: options })
         entity_class.new(data)

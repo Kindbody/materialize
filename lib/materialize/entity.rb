@@ -1,3 +1,5 @@
+# TODO: Write a Entity::attr_collection method that returns an empty array if not set
+
 module Materialize
   class Entity
     include Utils
@@ -47,7 +49,12 @@ module Materialize
 
     def attempt_entity_conversion(key, value)
       if class_exists?(covert_to_entity_class_name(key))
-        Module.const_get(builder_class_name_for(key)).build_all(value, __repo__, __options__)
+        klass = Module.const_get(builder_class_name_for(key))
+        if value.is_a?(Array)
+          klass.build_all(value, __repo__, __options__)
+        else
+          klass.build(value, __repo__, __options__)
+        end
       else
         value
       end
