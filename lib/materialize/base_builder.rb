@@ -4,7 +4,9 @@ module Materialize
     class << self
 
       def build(data, repo, options)
-        entity_class.new(data)
+        entity = entity_class.new(data)
+        entity.__builder_info__ = { repo: repo, options: options }
+        entity
       end
 
       def build_all(data, repo, options)

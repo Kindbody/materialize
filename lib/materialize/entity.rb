@@ -4,6 +4,8 @@ module Materialize
   class Entity
     include Utils
 
+    attr_writer :__builder_info__
+
     def self.wrap(entities_data)
       entities_data.map { |entity_data| new(entity_data) }
     end
@@ -29,6 +31,18 @@ module Materialize
     end
 
     private
+
+    def __builder_info__
+      @__builder_info__ ||= []
+    end
+
+    def repo
+      __builder_info__[:repo]
+    end
+
+    def options
+      __builder_info__[:options]
+    end
 
     def collection?(value)
       value.is_a? Enumerable
