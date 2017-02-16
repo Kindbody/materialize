@@ -20,21 +20,6 @@ describe Materialize::BaseBuilder do
     expect(oompa_loompa.__send__(:__options__)).to eq({})
   end
 
-  it "correctly passes the repo and options to sub-entities" do
-    repo = double('repo')
-    oompa_loompa = OompaLoompaBuilder.build({
-      type: 'Doo-pa-dee-doo',
-      wimps: [
-        {id: 1},
-        {id: 2}
-      ]
-    }, repo, {})
-    wimp = oompa_loompa.wimps.first
-    expect(wimp).to be_a(Entities::Wimp)
-    expect(wimp.__send__(:__repo__)).to eq(repo)
-    expect(wimp.__send__(:__options__)).to eq({})
-  end
-
 end
 
 module Entities

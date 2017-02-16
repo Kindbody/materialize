@@ -1,5 +1,3 @@
-require 'pry'
-
 module Materialize
   class BaseBuilder
     extend Concurrent
