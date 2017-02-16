@@ -192,6 +192,3 @@ module Entities
 
   class ConcurrentBrain < Materialize::Entity; end
 end
-
-class BrainBuilder < Materialize::BaseBuilder; end
-class HeadacheBuilder < Materialize::BaseBuilder; end
