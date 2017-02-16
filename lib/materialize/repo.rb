@@ -14,6 +14,9 @@ module Materialize
       args_to_pass      = options[:args]
 
       data, builder_class = process(data_source_class, query, args_to_pass)
+
+      yield(data) if block_given?
+
       options.delete(:args)
 
       if data.is_a?(Hash) and !data['message'].nil?

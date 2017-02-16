@@ -52,6 +52,43 @@ describe Materialize::Repo do
     expect(zombie.id).to eq(4)
   end
 
+  it 'accepts a list of additional data to lookup' do
+    zombie = FindFullZombie.new(2, repo).result
+    expect(zombie.brains[1].name).to eq('Bill')
+    expect(zombie.brains.first.headache.id).to eq(100)
+  end
+
+end
+
+class FindFullZombie
+
+  attr_reader :zombie_id, :repo
+
+  def initialize(zombie_id, repo)
+    @zombie_id = zombie_id
+    @repo      = repo
+  end
+
+  def result
+    repo.find_one_zombie(DataSource::Zombie, args: zombie_id) do |response|
+      add_brains_to(response)
+      get_headaches_for(response[:brains])
+    end
+  end
+
+  private
+
+  def add_brains_to(response)
+    response[:brains] = DataSource::Brain.find_brains_for(response[:id])
+  end
+
+  def get_headaches_for(brains_data)
+    headaches_data = DataSource::Headache.all_for_brains(brains_data.map { |brain_data| brain_data[:id] })
+    brains_data.each do |brain_data|
+      brain_data[:headache] = headaches_data.find { |headache_data| headache_data[:brain_id] == brain_data[:id] }
+    end
+  end
+
 end
 
 module DataSource
@@ -75,11 +112,39 @@ module DataSource
       end
     end
   end
+
+  class Brain
+    class << self
+
+      def find_brains_for(zombie_id)
+        [{id: 1}, {id: 2, name: 'Bill'}, {id: 3}]
+      end
+
+    end
+
+    attr_accessor :headaches
+
+  end
+
+  class Headache
+    class << self
+
+      def all_for_brains(brain_ids)
+        brain_ids.map { |brain_id| { id: (brain_id * 100), info: "Ahhhhh - brain #{brain_id}", brain_id: brain_id } }
+      end
+
+    end
+  end
 end
 
 module Entities
   class Zombie < Materialize::Entity
+    attr_accessor :brains
   end
+
+  class Brain < Materialize::Entity; end
+
+  class Headache < Materialize::Entity; end
 end
 
 # Testing concurrency
@@ -95,7 +160,7 @@ module DataSource
     end
   end
 
-  class Brain
+  class ConcurrentBrain
     class << self
 
       def find_brains_for(zombie)
@@ -112,7 +177,7 @@ class ConcurrentZombieBuilder < Materialize::BaseBuilder
     def build(data, repo, options)
       zombie = Entities::ConcurrentZombie.new(data)
       concurrent -> do
-        zombie.brains = repo.find_brains_for(DataSource::Brain, args: zombie)
+        zombie.brains = repo.find_brains_for(DataSource::ConcurrentBrain, args: zombie)
       end
       zombie
     end
@@ -125,5 +190,8 @@ module Entities
     attr_accessor :brains
   end
 
-  class Brain < Materialize::Entity; end
+  class ConcurrentBrain < Materialize::Entity; end
 end
+
+class BrainBuilder < Materialize::BaseBuilder; end
+class HeadacheBuilder < Materialize::BaseBuilder; end
