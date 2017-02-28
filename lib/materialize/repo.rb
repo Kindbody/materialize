@@ -13,27 +13,43 @@ module Materialize
       options           = args[1] || {}
       args_to_pass      = options[:args]
 
-      data, builder_class = process(data_source_class, query, args_to_pass)
+      data, builder_class, entity_class = process(data_source_class, query, args_to_pass)
 
       yield(data) if block_given?
 
       options.delete(:args)
 
-      if data.is_a?(Hash) and !data['message'].nil?
-			  Response.new data
-      elsif data.is_a?(Array)
-        builder_class.build_all(data, self, options)
+      # TODO: add a temporary bypass switch that skips builders
+      # TODO: Switch to something like data['m_message'] to avoid collisions
+
+      if options[:skip_builders]
+        if data.is_a?(Hash) and !data['message'].nil?
+          Response.new data
+        elsif data.is_a?(Array)
+          builder_class.build_all(data, self, options)
+        else
+          builder_class.build(data, self, options)
+        end
       else
-        builder_class.build(data, self, options)
+        if data.is_a?(Hash) and !data['message'].nil?
+          Response.new data
+        elsif data.is_a?(Array)
+          builder_class.build_all(data, self, options)
+        else
+          builder_class.build(data, self, options)
+        end
       end
+
     end
 
     private
 
     def process(data_source_class, query, args_to_pass)
-      data = get_data(data_source_class, query, args_to_pass)
+      data          = get_data(data_source_class, query, args_to_pass)
       builder_class = builder_class_for builder_class_name_for base_class_name_for data_source_class
-      return data, builder_class
+      entity_class  = entity_class_for base_class_name_for data_source_class
+      
+      return data, builder_class, entity_class
     end
 
     def builder_class_for(builder_class_name)
@@ -46,6 +62,10 @@ module Materialize
 
     def builder_class_name_for(base_class_name)
       "#{base_class_name}Builder"
+    end
+
+    def entity_class_for(base_class_name)
+      Module.const_get("Entities::#{base_class_name}")
     end
 
     def base_class_name_for(data_source_class)
