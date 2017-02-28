@@ -4,8 +4,14 @@ module Materialize
   class Entity
     include Utils
 
-    def self.wrap(entities_data)
-      entities_data.map { |entity_data| new(entity_data) }
+    class << self
+
+      def wrap(entities_data)
+        entities_data.map { |entity_data| new(entity_data) }
+      end
+
+      alias :build :new
+
     end
 
     def initialize(attributes)
@@ -34,8 +40,6 @@ module Materialize
         value
       end
     end
-
-    # ----> END REMARKS
 
     def collection?(value)
       value.is_a? Enumerable
