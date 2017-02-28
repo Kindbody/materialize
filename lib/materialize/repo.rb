@@ -26,9 +26,9 @@ module Materialize
         if data.is_a?(Hash) and !data['message'].nil?
           Response.new data
         elsif data.is_a?(Array)
-          builder_class.build_all(data, self, options)
+          entity_class.wrap(data)
         else
-          builder_class.build(data, self, options)
+          entity_class.new(data)
         end
       else
         if data.is_a?(Hash) and !data['message'].nil?
@@ -48,7 +48,7 @@ module Materialize
       data          = get_data(data_source_class, query, args_to_pass)
       builder_class = builder_class_for builder_class_name_for base_class_name_for data_source_class
       entity_class  = entity_class_for base_class_name_for data_source_class
-      
+
       return data, builder_class, entity_class
     end
 
