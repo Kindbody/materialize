@@ -4,6 +4,8 @@ module Materialize
   class Entity
     include Utils
 
+    attr_reader :source
+
     class << self
 
       def wrap(entities_data)
@@ -15,6 +17,8 @@ module Materialize
     end
 
     def initialize(attributes)
+      @source = attributes
+
       raise "Attributes must be a hash" unless attributes.is_a?(Hash)
 
       attributes.each_pair do |key, value|
@@ -24,6 +28,10 @@ module Materialize
           attr_reader key.to_sym
         end
       end
+    end
+
+    def empty?
+      source.empty?
     end
 
     private
